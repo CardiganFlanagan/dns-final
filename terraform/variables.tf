@@ -1,4 +1,4 @@
-variable "aws_region"{
+variable "aws_region" {
   description = "AWS region"
   type        = string
   default     = "us-east-1"
@@ -7,13 +7,13 @@ variable "aws_region"{
 variable "vpc_cidr" {
   description = "VPC CIDR block"
   type        = string
-  default     = "10.0.0.0/16"
+  default     = "192.168.0.0/16"
 }
 
 variable "subnet_cidr" {
   description = "Subnet CIDR block"
   type        = string
-  default     = "10.0.1.0/24"
+  default     = "192.168.1.0/24"
 }
 
 variable "instance_type" {
@@ -43,22 +43,22 @@ variable "dns_servers" {
   }))
   default = {
     primary = {
-      private_ip = "10.0.1.10"
+      private_ip = "192.168.1.10"
       hostname   = "ns1"
       role       = "master"
     }
     secondary = {
-      private_ip = "10.0.1.11"
+      private_ip = "192.168.1.11"
       hostname   = "ns2"
       role       = "slave"
     }
     caching = {
-      private_ip = "10.0.1.12"
+      private_ip = "192.168.1.12"
       hostname   = "cache"
       role       = "cache"
     }
     forwarding = {
-      private_ip = "10.0.1.13"
+      private_ip = "192.168.1.13"
       hostname   = "fwd"
       role       = "forwarder"
     }
