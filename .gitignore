@@ -1,0 +1,10 @@
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/*.pem
+terraform/.terraform.lock.hcl
+ansible/*.retry
+*.pem
+*.key
+.DS_Store
+__pycache__/
