@@ -1,0 +1,30 @@
+---
+- name: Common setup on all servers
+  hosts: dns_servers
+  become: true
+  roles:
+    - common
+
+- name: Primary DNS
+  hosts: primary
+  become: true
+  roles:
+    - primary-dns
+
+- name: Caching DNS
+  hosts: caching
+  become: true
+  roles:
+    - caching-dns
+
+- name: Forwarding DNS
+  hosts: forwarding
+  become: true
+  roles:
+    - forwarding-dns
+
+- name: Secondary DNS
+  hosts: secondary
+  become: true
+  roles:
+    - secondary-dns

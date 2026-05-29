@@ -1,0 +1,58 @@
+---
+domain: "lab.com"
+admin_email: "root.lab.com"
+
+network: "192.168.1.0/24"
+reverse_zone: "1.168.192"
+
+primary_ip: "192.168.1.10"
+primary_host: "ns1"
+
+secondary_ip: "192.168.1.11"
+secondary_host: "ns2"
+
+caching_ip: "192.168.1.12"
+caching_host: "cache"
+
+forwarding_ip: "192.168.1.13"
+forwarding_host: "fwd"
+
+forwarders:
+  - "8.8.8.8"
+  - "8.8.4.4"
+  - "1.1.1.1"
+
+soa_serial: "2025052801"
+soa_refresh: 604800
+soa_retry: 86400
+soa_expire: 2419200
+soa_neg_cache_ttl: 604800
+soa_ttl: 604800
+
+dns_a_records:
+  - { name: "ns1",     ip: "192.168.1.10" }
+  - { name: "ns2",     ip: "192.168.1.11" }
+  - { name: "cache",   ip: "192.168.1.12" }
+  - { name: "fwd",     ip: "192.168.1.13" }
+  - { name: "laptop1", ip: "192.168.1.21" }
+  - { name: "laptop2", ip: "192.168.1.22" }
+  - { name: "pc1",     ip: "192.168.1.23" }
+  - { name: "pc2",     ip: "192.168.1.24" }
+  - { name: "pc3",     ip: "192.168.1.25" }
+  - { name: "phone",   ip: "192.168.1.26" }
+  - { name: "printer", ip: "192.168.1.27" }
+  - { name: "server1", ip: "192.168.1.30" }
+  - { name: "server2", ip: "192.168.1.31" }
+  - { name: "nas",     ip: "192.168.1.40" }
+
+dns_cname_records:
+  - { name: "www",  target: "server1.lab.com." }
+  - { name: "mail", target: "server1.lab.com." }
+  - { name: "ftp",  target: "nas.lab.com." }
+
+dns_mx_records:
+  - { priority: 10, host: "server1.lab.com." }
+
+bind_dir: "/etc/bind"
+zones_dir: "/etc/bind/zones"
+log_dir: "/var/log/named"
