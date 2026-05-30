@@ -1,0 +1,29 @@
+acl "trusted" {
+    {{ network }};
+    localhost;
+};
+
+options {
+    directory "/var/cache/bind";
+
+    max-cache-size 256m;
+    max-cache-ttl 86400;
+    max-ncache-ttl 3600;
+
+    allow-query       { trusted; };
+    allow-query-cache { trusted; };
+    allow-transfer    { none; };
+
+    recursion yes;
+    allow-recursion { trusted; };
+
+    listen-on    { {{ caching_ip }}; 127.0.0.1; };
+    listen-on-v6 { none; };
+
+    dnssec-validation auto;
+
+    rate-limit {
+        responses-per-second 5;
+        window 5;
+    };
+};

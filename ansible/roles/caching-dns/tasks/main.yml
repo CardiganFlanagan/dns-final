@@ -1,0 +1,37 @@
+---
+- name: Configure named.conf.options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: "{{ bind_dir }}/named.conf.options"
+  notify: restart bind9
+
+- name: Configure named.conf.local (empty - no zones)
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: "{{ bind_dir }}/named.conf.local"
+  notify: restart bind9
+
+- name: Validate configuration
+  ansible.builtin.command: named-checkconf
+  changed_when: false
+
+- name: Apply configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for bind9 to start
+  ansible.builtin.wait_for:
+    port: 53
+    host: "{{ caching_ip }}"
+    delay: 2
+    timeout: 30
+
+- name: Test - resolve external domain
+  ansible.builtin.command:
+    cmd: "dig +short google.com @{{ caching_ip }}"
+  register: cache_test
+  changed_when: false
+  ignore_errors: true
+
+- name: Show test result
+  ansible.builtin.debug:
+    msg: "google.com -> {{ cache_test.stdout }}"
