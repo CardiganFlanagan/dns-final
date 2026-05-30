@@ -17,7 +17,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 # ssh key
@@ -27,7 +27,7 @@ resource "tls_private_key" "dns_key" {
 }
 
 resource "aws_key_pair" "dns_key" {
-  key_name   = "dns-project-key"
+  key_name   = var.key_name
   public_key = tls_private_key.dns_key.public_key_openssh
 }
 
@@ -39,7 +39,7 @@ resource "local_file" "private_key" {
 
 # vpc
 resource "aws_vpc" "dns_vpc" {
-  cidr_block           = "192.168.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = { Name = "dns-project-vpc" }
@@ -48,8 +48,8 @@ resource "aws_vpc" "dns_vpc" {
 # subnet
 resource "aws_subnet" "dns_subnet" {
   vpc_id                  = aws_vpc.dns_vpc.id
-  cidr_block              = "192.168.1.0/24"
-  availability_zone       = "us-east-1a"
+  cidr_block              = var.subnet_cidr
+  availability_zone       = "${var.aws_region}a"
   map_public_ip_on_launch = true
   tags = { Name = "dns-project-subnet" }
 }

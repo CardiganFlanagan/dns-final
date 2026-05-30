@@ -1,0 +1,16 @@
+$TTL {{ soa_ttl }}
+
+@  IN  SOA  {{ primary_host }}.{{ domain }}.  {{ admin_email }}. (
+    {{ soa_serial }}
+    {{ soa_refresh }}
+    {{ soa_retry }}
+    {{ soa_expire }}
+    {{ soa_neg_cache_ttl }}
+)
+
+@  IN  NS  {{ primary_host }}.{{ domain }}.
+@  IN  NS  {{ secondary_host }}.{{ domain }}.
+
+{% for record in dns_a_records %}
+{{ record.ip.split('.')[-1] }}  IN  PTR  {{ record.name }}.{{ domain }}.
+{% endfor %}

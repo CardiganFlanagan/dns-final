@@ -1,0 +1,24 @@
+$TTL {{ soa_ttl }}
+
+@  IN  SOA  {{ primary_host }}.{{ domain }}.  {{ admin_email }}. (
+    {{ soa_serial }}
+    {{ soa_refresh }}
+    {{ soa_retry }}
+    {{ soa_expire }}
+    {{ soa_neg_cache_ttl }}
+)
+
+@  IN  NS  {{ primary_host }}.{{ domain }}.
+@  IN  NS  {{ secondary_host }}.{{ domain }}.
+
+{% for mx in dns_mx_records %}
+@  IN  MX  {{ mx.priority }}  {{ mx.host }}
+{% endfor %}
+
+{% for record in dns_a_records %}
+{{ record.name }}  IN  A  {{ record.ip }}
+{% endfor %}
+
+{% for record in dns_cname_records %}
+{{ record.name }}  IN  CNAME  {{ record.target }}
+{% endfor %}

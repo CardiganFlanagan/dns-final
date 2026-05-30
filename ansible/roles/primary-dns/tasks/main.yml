@@ -1,0 +1,59 @@
+---
+- name: Configure named.conf.options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: "{{ bind_dir }}/named.conf.options"
+  notify: restart bind9
+
+- name: Configure named.conf.local
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: "{{ bind_dir }}/named.conf.local"
+  notify: restart bind9
+
+- name: Create forward zone
+  ansible.builtin.template:
+    src: forward.zone.j2
+    dest: "{{ zones_dir }}/forward.{{ domain }}.db"
+  notify: reload bind9
+
+- name: Create reverse zone
+  ansible.builtin.template:
+    src: reverse.zone.j2
+    dest: "{{ zones_dir }}/reverse.{{ reverse_zone }}.db"
+  notify: reload bind9
+
+- name: Validate configuration
+  ansible.builtin.command: named-checkconf
+  changed_when: false
+
+- name: Validate forward zone
+  ansible.builtin.command: "named-checkzone {{ domain }} {{ zones_dir }}/forward.{{ domain }}.db"
+  changed_when: false
+
+- name: Validate reverse zone
+  ansible.builtin.command: "named-checkzone {{ reverse_zone }}.in-addr.arpa {{ zones_dir }}/reverse.{{ reverse_zone }}.db"
+  changed_when: false
+
+- name: Apply configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for bind9
+  ansible.builtin.wait_for:
+    port: 53
+    host: "{{ primary_ip }}"
+    delay: 2
+    timeout: 30
+
+- name: Test forward lookup
+  ansible.builtin.command: "dig +short {{ item.name }}.{{ domain }} @{{ primary_ip }}"
+  loop: "{{ dns_a_records[:4] }}"
+  register: test_results
+  changed_when: false
+
+- name: Show results
+  ansible.builtin.debug:
+    msg: "{{ item.item.name }}.{{ domain }} -> {{ item.stdout }}"
+  loop: "{{ test_results.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"

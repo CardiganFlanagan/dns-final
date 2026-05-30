@@ -7,14 +7,15 @@ options {
     directory "/var/cache/bind";
 
     allow-query     { trusted; };
-    allow-transfer  { none; };
-    notify no;
+    allow-transfer  { {{ secondary_ip }}; };
+    also-notify     { {{ secondary_ip }}; };
 
     recursion yes;
     allow-recursion { trusted; };
 
-    listen-on    { {{ secondary_ip }}; 127.0.0.1; };
+    listen-on    { {{ primary_ip }}; 127.0.0.1; };
     listen-on-v6 { none; };
 
     dnssec-validation auto;
+    auth-nxdomain no;
 };

@@ -1,0 +1,14 @@
+zone "{{ domain }}" {
+    type master;
+    file "{{ zones_dir }}/forward.{{ domain }}.db";
+    allow-update { none; };
+    allow-transfer { {{ secondary_ip }}; };
+    also-notify { {{ secondary_ip }}; };
+};
+
+zone "{{ reverse_zone }}.in-addr.arpa" {
+    type master;
+    file "{{ zones_dir }}/reverse.{{ reverse_zone }}.db";
+    allow-update { none; };
+    allow-transfer { {{ secondary_ip }}; };
+};

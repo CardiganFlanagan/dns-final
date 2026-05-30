@@ -1,0 +1,42 @@
+acl trusted-clients {
+    127.0.0.1;
+    {{ network }};
+};
+
+options {
+    directory "/var/cache/bind";
+
+    listen-on port 53 { 127.0.0.1; {{ forwarding_ip }}; };
+    listen-on-v6 { none; };
+
+    allow-query { trusted-clients; };
+    allow-recursion { trusted-clients; };
+    recursion yes;
+
+    forwarders {
+{% for fwd in forwarders %}
+        {{ fwd }};
+{% endfor %}
+    };
+    forward only;
+
+    dnssec-validation auto;
+};
+
+// local domain goes to our Primary/Secondary DNS
+zone "{{ domain }}" {
+    type forward;
+    forwarders {
+        {{ primary_ip }};
+        {{ secondary_ip }};
+    };
+};
+
+// reverse zone also to Primary/Secondary
+zone "{{ reverse_zone }}.in-addr.arpa" {
+    type forward;
+    forwarders {
+        {{ primary_ip }};
+        {{ secondary_ip }};
+    };
+};

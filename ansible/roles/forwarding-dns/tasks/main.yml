@@ -1,0 +1,49 @@
+---
+- name: Deploy named.conf.options for Forwarder
+  template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart BIND9 Forwarder
+
+- name: Validate BIND9 syntax
+  command: named-checkconf
+  register: check_conf
+  changed_when: false
+  failed_when: check_conf.rc != 0
+
+- name: Apply configuration
+  meta: flush_handlers
+
+- name: Ensure BIND9 is running and enabled
+  systemd:
+    name: bind9
+    state: started
+    enabled: yes
+
+- name: Wait for bind9 to start
+  wait_for:
+    port: 53
+    host: "{{ forwarding_ip }}"
+    delay: 2
+    timeout: 30
+
+- name: Test - external domain via upstream
+  command: "dig +short google.com @{{ forwarding_ip }}"
+  register: fwd_external
+  changed_when: false
+  ignore_errors: true
+
+- name: Test - local domain via Primary
+  command: "dig +short ns1.{{ domain }} @{{ forwarding_ip }}"
+  register: fwd_local
+  changed_when: false
+  ignore_errors: true
+
+- name: Show results
+  debug:
+    msg:
+      - "google.com -> {{ fwd_external.stdout }} (upstream)"
+      - "ns1.{{ domain }} -> {{ fwd_local.stdout }} (via Primary)"
