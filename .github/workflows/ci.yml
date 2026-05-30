@@ -1,0 +1,68 @@
+name: DNS Infrastructure CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init -backend=false
+        working-directory: terraform
+      - run: terraform validate
+        working-directory: terraform
+
+  validate-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install ansible
+      - run: |
+          mkdir -p ansible/inventory
+          cat > ansible/inventory/hosts.yml << 'INVEOF'
+          all:
+            children:
+              primary:
+                hosts:
+                  ns1:
+                    ansible_host: 127.0.0.1
+              secondary:
+                hosts:
+                  ns2:
+                    ansible_host: 127.0.0.1
+              caching:
+                hosts:
+                  cache:
+                    ansible_host: 127.0.0.1
+              forwarding:
+                hosts:
+                  fwd:
+                    ansible_host: 127.0.0.1
+              dns_servers:
+                children:
+                  primary:
+                  secondary:
+                  caching:
+                  forwarding:
+            vars:
+              ansible_user: ubuntu
+          INVEOF
+      - run: ansible-playbook site.yml --syntax-check
+        working-directory: ansible
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for secrets
+        run: |
+          if grep -rn "AKIA\|aws_secret\|password" terraform/ ansible/ --include="*.tf" --include="*.yml" | grep -v "#"; then
+            echo "Possible secrets found!"
+            exit 1
+          fi
+          echo "No secrets found"
