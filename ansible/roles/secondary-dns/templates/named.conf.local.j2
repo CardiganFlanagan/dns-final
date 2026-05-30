@@ -1,0 +1,13 @@
+zone "{{ domain }}" {
+    type slave;
+    file "{{ zones_dir }}/slave.forward.{{ domain }}.db";
+    masters { {{ primary_ip }}; };
+    allow-notify { {{ primary_ip }}; };
+};
+
+zone "{{ reverse_zone }}.in-addr.arpa" {
+    type slave;
+    file "{{ zones_dir }}/slave.reverse.{{ reverse_zone }}.db";
+    masters { {{ primary_ip }}; };
+    allow-notify { {{ primary_ip }}; };
+};

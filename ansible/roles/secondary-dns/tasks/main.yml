@@ -1,0 +1,56 @@
+---
+- name: Check if Primary DNS is available
+  ansible.builtin.command:
+    cmd: "dig +short +time=3 SOA {{ domain }} @{{ primary_ip }}"
+  register: primary_check
+  changed_when: false
+  ignore_errors: true
+
+- name: Set zones directory permissions for slave
+  ansible.builtin.file:
+    path: "{{ zones_dir }}"
+    owner: bind
+    group: bind
+    mode: "0775"
+
+- name: Configure named.conf.options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: "{{ bind_dir }}/named.conf.options"
+  notify: restart bind9
+
+- name: Configure slave zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: "{{ bind_dir }}/named.conf.local"
+  notify: restart bind9
+
+- name: Validate configuration
+  ansible.builtin.command: named-checkconf
+  changed_when: false
+
+- name: Apply configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for bind9 to start
+  ansible.builtin.wait_for:
+    port: 53
+    host: "{{ secondary_ip }}"
+    delay: 2
+    timeout: 30
+
+- name: Wait for zone transfer
+  ansible.builtin.wait_for:
+    path: "{{ zones_dir }}/slave.forward.{{ domain }}.db"
+    timeout: 30
+  ignore_errors: true
+
+- name: Test forward lookup via Secondary
+  ansible.builtin.command:
+    cmd: "dig +short ns1.{{ domain }} @{{ secondary_ip }}"
+  register: test_result
+  changed_when: false
+
+- name: Show test result
+  ansible.builtin.debug:
+    msg: "ns1.{{ domain }} -> {{ test_result.stdout }}"
